@@ -35,6 +35,7 @@ protected:
 
 protected:
 	RealSignal mySignal;
+	DFTSignal myDFTSignal;
 	std::vector<CPoint> userVec;
 
 public:
@@ -42,12 +43,30 @@ public:
 	size_t GetSignalPoints(std::vector<CPoint>& vecDst) { vecDst = userVec; return userVec.size(); }
 
 public:
-	std::vector <CPoint> vec;
-	std::vector <CPoint> Calculate(std::vector <CPoint> vc);
+	std::vector <double> myData;
+	std::vector <CPoint> vecSignal;
+	std::vector <CPoint> DFTSignal;
+	std::vector <CPoint> CalculateSignal(std::vector <CPoint> vc);
+	std::vector <CPoint> CalculateDFTSignal(std::vector <CPoint> vc);
+	void SetScrollsBarRange();
 
 public:
 	afx_msg void OnBnClickedDrawGraphic();
 	afx_msg void OnStnClickedStaticPaint();
 	Paint mySignalGraph;
+	Paint DFTGraph;
+	afx_msg void OnStnClickedStaticPaint2();
 	
+	afx_msg void OnNMThemeChangedScrollbar2(NMHDR* pNMHDR, LRESULT* pResult);
+	CScrollBar mPos;
+	CScrollBar FmPos;
+	CScrollBar fPos;
+	CScrollBar stepPos;
+	double mValue, FmValue, fValue, stepValue;
+	afx_msg void OnBnClickedOk();
+	afx_msg void OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
+	CString mValueText;
+	CString FmValueText;
+	CString fValueText;
+	CString stepValueText;
 };

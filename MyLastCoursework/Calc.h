@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+
 #define PI 3.141592653589793238463
 
 class Calc
@@ -23,6 +24,7 @@ public:
 	CPoint ToRectCenter(const CRect & place);
 	double GetScale(double sc) { return scale = sc; }
 	void SetStep(double s) { step = s;}
+
 	void SetLog(bool b) { checkLog = b; }
 	void IsCalculated() { checkCalculation = true; }
 	virtual const std::vector<CPoint>& get_points();
@@ -36,10 +38,10 @@ protected:
 class RealSignal : public Calc 
 {
 protected:
-	double f_ = 0.2 ;
-	double m = 0.5;
-	double Fm = 0.3 ;
-	double a = 1;
+	double m_f = 0.2 ;
+	double m_m = 0.5;
+	double m_Fm = 0.3 ;
+	double m_a = 1;
 
 public:
 	std::vector<double> data;
@@ -49,6 +51,7 @@ protected:
 	
 
 public:
+	void SetParametrs(float m, float Fm, float f) { m_f = f; m_m = m; m_Fm = Fm;}
 	double f(double x);
 	const std::vector<double>& get_data();
 	virtual void calculate();
@@ -60,5 +63,10 @@ class DFTSignal : public RealSignal
 {
 public:
 	std::vector <CPoint> DFTGraph;
+
+public: 
+	double f(double x);
+	size_t n;
+	size_t N = data.size();
 };
 

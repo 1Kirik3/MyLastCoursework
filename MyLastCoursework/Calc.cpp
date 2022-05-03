@@ -57,7 +57,7 @@ void Calc::calculate()
 
 double RealSignal::f(double x)
 {
-	return (scale * a *(1+m*sin(2*PI*Fm*(x/scale)))*sin(2*PI*f_*(x/scale)));
+	return (scale * m_a *(1+m_m*sin(2*PI*m_Fm*(x/scale)))*sin(2*PI*m_f*(x/scale)));
 }
 
 const std::vector<double>& RealSignal::get_data()
@@ -88,4 +88,15 @@ void RealSignal::calculate()
 		points.push_back(myPoint);
 	}
 	IsCalculated();
+}
+
+double DFTSignal::f(double x)
+{
+	double re = 0, im = 0;
+	for (n = 0; n < N; n++)
+	{
+		re += data[n] * cos(2 * PI * x * n / N);
+		im += data[n] * sin(-2 * PI * x * n / N);
+	}
+	return (sqrt(re * re + im * im));
 }
