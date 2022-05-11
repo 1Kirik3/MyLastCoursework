@@ -1,5 +1,6 @@
 #pragma once
 #include "Calc.h"
+
 #include <afxwin.h>
 class Paint :  public CStatic
 {
@@ -18,13 +19,22 @@ protected:
 public:
 	afx_msg void OnPaint();
 	bool myBgrOk;
-	std::vector<Calc*> functions;
-	bool hist = false;
-	bool is_log = false;
 	std::vector <CPoint> vec;
+	
+	struct userColor
+	{
+		unsigned int red;
+		unsigned int green;
+		unsigned int blue;
+	};
+
+	userColor graphUserColor;
+	userColor backUserColor;
+
 	void ToGraph(std::vector <CPoint> vc)
 	{
 		vec = vc;
 	}
+	
 };
 

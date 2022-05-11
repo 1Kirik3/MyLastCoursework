@@ -26,77 +26,78 @@ CPoint Calc::ToRectCenter(const CRect& place)
 	return center;
 }
 
-const std::vector<CPoint>& Calc::get_points()
-{
-	if (!checkCalculation) {
-		calculate();
-	}
-	return points;
-}
-
-void Calc::calculate()
-{
-	double start = from;
-	double end = to;
-	points.resize(ceil((end - start) / step));
-	for (size_t i = 0; i < points.size(); i++)
-	{
-		CPoint myPoint;
-		myPoint.x = start + step * i;
-		double x = myPoint.x;
-		myPoint.y = 0;
-
-		if (checkLog) {
-			myPoint.y = log10(abs(myPoint.y));
-		}
-		myPoint = ScalingPoint(myPoint, scale);
-		points.push_back(myPoint);
-	}
-	IsCalculated();
-}
 
 double RealSignal::f(double x)
 {
-	return (scale * m_a *(1+m_m*sin(2*PI*m_Fm*(x/scale)))*sin(2*PI*m_f*(x/scale)));
-}
-
-const std::vector<double>& RealSignal::get_data()
-{
-	if (!checkCalculation) {
-		calculate();
-	}
-	return data;
-}
-
-void RealSignal::calculate()
-{
-	double start = from;
-	double end = to;
-	points.resize(ceil((end - start) / step));
-	data.resize(points.size());
-	for (size_t i = 0; i < points.size(); i++)
+	if ((checkYScale == 1) && (checkXScale == 0))
 	{
-		CPoint myPoint;
-		myPoint.x = start + step * i;
-		double x = myPoint.x;
-		myPoint.y = f(x);
-		data[i] = myPoint.y;
-		if (checkLog) {
-			myPoint.y = log10(abs(myPoint.y));
-		}
-		myPoint = ScalingPoint(myPoint, scale);
-		points.push_back(myPoint);
+		if (checkLog)
+			return (signalScale * log10(abs((m_a * (1 + m_m * sin(2 * PI * m_Fm * (x))) * sin(2 * PI * m_f * (x))))));
+		else
+			return (signalScale * (m_a * (1 + m_m * sin(2 * PI * m_Fm * (x))) * sin(2 * PI * m_f * (x))));
 	}
-	IsCalculated();
+
+	else if ((checkYScale == 0) && (checkXScale == 1))
+	{
+		if (checkLog)
+			return (log10(abs((m_a * (1 + m_m * sin(2 * PI * m_Fm * (x / signalScale))) * sin(2 * PI * m_f * (x / signalScale))))));
+		else
+			return ((m_a * (1 + m_m * sin(2 * PI * m_Fm * (x / signalScale))) * sin(2 * PI * m_f * (x / signalScale))));
+	}
+	else
+	{
+	if (checkLog)
+			return (signalScale * log10(abs((m_a * (1 + m_m * sin(2 * PI * m_Fm * (x / signalScale))) * sin(2 * PI * m_f * (x / signalScale))))));
+		else
+			return (signalScale * (m_a * (1 + m_m * sin(2 * PI * m_Fm * (x / signalScale))) * sin(2 * PI * m_f * (x / signalScale))));
+	}
+	
+
 }
 
-double DFTSignal::f(double x)
+double RealSignal::f_no_scale(double x)
 {
+	//if (checkLog)
+		//return (log10(abs((m_a * (1 + m_m * sin(2 * PI * m_Fm * (x))) * sin(2 * PI * m_f * (x))))));
+	//else
+		return (m_a * (1 + m_m * sin(2 * PI * m_Fm * (x))) * sin(2 * PI * m_f * (x)));
+}
+
+double DFTSignal::f_DFT(double x)
+{	
+	size_t m = x;
+	size_t N = data.size();
 	double re = 0, im = 0;
 	for (n = 0; n < N; n++)
 	{
-		re += data[n] * cos(2 * PI * x * n / N);
-		im += data[n] * sin(-2 * PI * x * n / N);
+		if (checkXScale)
+		{
+			re += data[n] * cos(2 * PI * (m / DFTscale) * n / N);
+			im += data[n] * sin(-2 * PI * (m / DFTscale) * n / N);
+		}
+
+		else
+		{
+			re += data[n] * cos(2 * PI * (m ) * n / N);
+			im += data[n] * sin(-2 * PI * (m) * n / N);
+		}
+		
 	}
-	return (sqrt(re * re + im * im));
+
+	if (checkYScale)
+	{
+	if (checkLog)
+			return (-1 *(DFTscale  * (log10(abs(sqrt(re * re + im * im))))));
+		else
+			return (-1 * (DFTscale * (sqrt(re * re + im * im))));
+	}
+	else
+	{
+	if (checkLog)
+			return (-1 * (log10(abs(sqrt(re * re + im * im)))));
+		else
+			return (-1 * (sqrt(re * re + im * im)));
+	}
+
+	
 }

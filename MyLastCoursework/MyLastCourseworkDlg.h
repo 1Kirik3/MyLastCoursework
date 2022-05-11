@@ -39,19 +39,20 @@ protected:
 	std::vector<CPoint> userVec;
 
 public:
-	CRect rc;
+	CRect SignalRc;
+	CRect DFTRc;
 	size_t GetSignalPoints(std::vector<CPoint>& vecDst) { vecDst = userVec; return userVec.size(); }
 
 public:
 	std::vector <double> myData;
 	std::vector <CPoint> vecSignal;
-	std::vector <CPoint> DFTSignal;
+	std::vector <CPoint> vecDFTSignal;
 	std::vector <CPoint> CalculateSignal(std::vector <CPoint> vc);
 	std::vector <CPoint> CalculateDFTSignal(std::vector <CPoint> vc);
 	void SetScrollsBarRange();
 
 public:
-	afx_msg void OnBnClickedDrawGraphic();
+	afx_msg void OnBnClickedPlaySoundtrack();
 	afx_msg void OnStnClickedStaticPaint();
 	Paint mySignalGraph;
 	Paint DFTGraph;
@@ -62,11 +63,43 @@ public:
 	CScrollBar FmPos;
 	CScrollBar fPos;
 	CScrollBar stepPos;
-	double mValue, FmValue, fValue, stepValue;
+	CScrollBar signalScalePos;
+	CScrollBar DFTScalePos;
+	float mValue, FmValue, fValue, scaleValue;
+	double mSignalScale, mDFTScale;
+	int stepValue;
 	afx_msg void OnBnClickedOk();
 	afx_msg void OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
 	CString mValueText;
 	CString FmValueText;
 	CString fValueText;
 	CString stepValueText;
+	afx_msg void OnBnClickedCheckLog();
+
+
+	CButton buttonLog;
+	CButton buttonScaleX;
+	CButton buttonScaleY;
+
+	BOOL  userIsLog;
+	BOOL isScaleX;
+	BOOL isScaleY;
+
+	void DoSaveSignal();
+	void DoSaveDFTGraph();
+
+	afx_msg void OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
+	afx_msg void OnHotKey(UINT nHotKeyId, UINT nKey1, UINT nKey2);
+	afx_msg void OnCbnSelchangeComboColor();
+	CComboBox graphColorChange;
+	CComboBox backColorChange;
+	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
+	CStatic cursorPosCoord;
+
+	void ResetParametrs();
+	
+	afx_msg void OnBnClickedCheckYscale();
+	afx_msg void OnBnClickedCheckXscale();
+	afx_msg void OnCbnSelchangeComboBackColor();
+	
 };
