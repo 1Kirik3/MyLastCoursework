@@ -34,14 +34,15 @@ protected:
 	DECLARE_MESSAGE_MAP()
 
 protected:
-	RealSignal mySignal;
-	DFTSignal myDFTSignal;
+	RealSignal userSignal;
+	DFTSignal userDFTSignal;
 	std::vector<CPoint> userVec;
 
 public:
 	CRect SignalRc;
 	CRect DFTRc;
-	size_t GetSignalPoints(std::vector<CPoint>& vecDst) { vecDst = userVec; return userVec.size(); }
+	Paint userSignalGraph;
+	Paint userDFTGraph;
 
 public:
 	std::vector <double> myData;
@@ -49,57 +50,59 @@ public:
 	std::vector <CPoint> vecDFTSignal;
 	std::vector <CPoint> CalculateSignal(std::vector <CPoint> vc);
 	std::vector <CPoint> CalculateDFTSignal(std::vector <CPoint> vc);
-	void SetScrollsBarRange();
+	
 
 public:
 	afx_msg void OnBnClickedPlaySoundtrack();
-	afx_msg void OnStnClickedStaticPaint();
-	Paint mySignalGraph;
-	Paint DFTGraph;
-	afx_msg void OnStnClickedStaticPaint2();
+	afx_msg void OnBnClickedOk();
+	afx_msg void OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
+	afx_msg void OnBnClickedCheckLog();
+	afx_msg void OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
+	afx_msg void OnHotKey(UINT nHotKeyId, UINT nKey1, UINT nKey2);
+	afx_msg void OnCbnSelchangeComboColor();
+	afx_msg void OnBnClickedCheckYscale();
+	afx_msg void OnBnClickedCheckXscale();
+	afx_msg void OnCbnSelchangeComboBackColor();
+	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
+
 	
-	afx_msg void OnNMThemeChangedScrollbar2(NMHDR* pNMHDR, LRESULT* pResult);
 	CScrollBar mPos;
 	CScrollBar FmPos;
 	CScrollBar fPos;
-	CScrollBar stepPos;
+	CScrollBar intervalPos;
 	CScrollBar signalScalePos;
 	CScrollBar DFTScalePos;
+
 	float mValue, FmValue, fValue, scaleValue;
 	double mSignalScale, mDFTScale;
-	int stepValue;
-	afx_msg void OnBnClickedOk();
-	afx_msg void OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
+	int intervalValue;
+	
 	CString mValueText;
 	CString FmValueText;
 	CString fValueText;
-	CString stepValueText;
-	afx_msg void OnBnClickedCheckLog();
-
+	CString intervalValueText;
 
 	CButton buttonLog;
 	CButton buttonScaleX;
 	CButton buttonScaleY;
 
-	BOOL  userIsLog;
+	BOOL userIsLog;
 	BOOL isScaleX;
 	BOOL isScaleY;
 
-	void DoSaveSignal();
-	void DoSaveDFTGraph();
-
-	afx_msg void OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
-	afx_msg void OnHotKey(UINT nHotKeyId, UINT nKey1, UINT nKey2);
-	afx_msg void OnCbnSelchangeComboColor();
 	CComboBox graphColorChange;
 	CComboBox backColorChange;
-	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
-	CStatic cursorPosCoord;
-
-	void ResetParametrs();
 	
-	afx_msg void OnBnClickedCheckYscale();
-	afx_msg void OnBnClickedCheckXscale();
-	afx_msg void OnCbnSelchangeComboBackColor();
+	CStatic cursorPosCoordSignal;
+	CStatic cursorPosCoordDFT;
+
+
+	void DoSaveSignal();
+	void DoSaveDFTGraph();
+	void ResetParametrs();
+	void SetScrollsBarRange();
+	
+	
+	
 	
 };

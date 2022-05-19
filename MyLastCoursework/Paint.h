@@ -21,7 +21,7 @@ public:
 	bool myBgrOk;
 	std::vector <CPoint> vec;
 	
-	struct userColor
+	struct userColor			//структура для хранения пользовательского цвета
 	{
 		unsigned int red;
 		unsigned int green;

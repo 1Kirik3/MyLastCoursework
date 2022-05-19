@@ -4,7 +4,6 @@
 //
 #define IDM_ABOUTBOX                    0x0010
 #define IDM_SAVEGRAPH                   0x0020
-#define IDM_RESET_PAR					0x52
 #define IDD_ABOUTBOX                    100
 #define IDS_ABOUTBOX                    101
 #define IDD_MYLASTCOURSEWORK_DIALOG     102
@@ -27,9 +26,11 @@
 #define IDC_HOTKEY1                     1017
 #define IDC_COMBO1                      1018
 #define IDC_STATIC_COORD                1019
+#define IDC_STATIC_COORD1               1019
 #define IDC_CHECK_XSCALE                1020
 #define IDC_CHECK_YSCALE                1021
 #define IDC_COMBO2                      1022
+#define IDC_STATIC_COORD2               1024
 
 // Next default values for new objects
 // 
@@ -37,7 +38,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        131
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1023
+#define _APS_NEXT_CONTROL_VALUE         1025
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

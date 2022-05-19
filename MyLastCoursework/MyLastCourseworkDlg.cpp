@@ -58,19 +58,17 @@ BEGIN_MESSAGE_MAP(CAboutDlg, CDialogEx)
 END_MESSAGE_MAP()
 
 
-// Диалоговое окно CMyLastCourseworkDlg
-
 
 
 CMyLastCourseworkDlg::CMyLastCourseworkDlg(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_MYLASTCOURSEWORK_DIALOG, pParent)
-	, mySignalGraph()
+	, userSignalGraph()
 
-	, DFTGraph()
+	, userDFTGraph()
 	, mValueText(_T(""))
 	, FmValueText(_T(""))
 	, fValueText(_T(""))
-	, stepValueText(_T(""))
+	, intervalValueText(_T(""))
 	, userIsLog(FALSE)
 	, isScaleX(FALSE)
 	, isScaleY(FALSE)
@@ -78,40 +76,38 @@ CMyLastCourseworkDlg::CMyLastCourseworkDlg(CWnd* pParent /*=nullptr*/)
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
 
-void CMyLastCourseworkDlg::DoDataExchange(CDataExchange* pDX)
+void CMyLastCourseworkDlg::DoDataExchange(CDataExchange* pDX)			//Обработчик интерфейса
 {
 	CDialogEx::DoDataExchange(pDX);
-	DDX_Control(pDX, IDC_STATIC_PAINT, mySignalGraph);
-	DDX_Control(pDX, IDC_STATIC_PAINT2, DFTGraph);
+	DDX_Control(pDX, IDC_STATIC_PAINT, userSignalGraph);
+	DDX_Control(pDX, IDC_STATIC_PAINT2, userDFTGraph);
 	DDX_Control(pDX, IDC_SCROLLBAR2, mPos);
 	DDX_Control(pDX, IDC_SCROLLBAR1, FmPos);
 	DDX_Control(pDX, IDC_SCROLLBAR3, fPos);
-	DDX_Control(pDX, IDC_SCROLLBAR4, stepPos);
+	DDX_Control(pDX, IDC_SCROLLBAR4, intervalPos);
 	DDX_Text(pDX, IDC_STATIC_M, mValueText);
 	DDX_Text(pDX, IDC_STATIC_Fm, FmValueText);
 	DDX_Text(pDX, IDC_STATIC_f, fValueText);
-	DDX_Text(pDX, IDC_STATIC_Step, stepValueText);
+	DDX_Text(pDX, IDC_STATIC_Step, intervalValueText);
 	DDX_Control(pDX, IDC_CHECK1, buttonLog);
 	DDX_Check(pDX, IDC_CHECK1, userIsLog);
 	DDX_Control(pDX, IDC_SCROLLBAR5, signalScalePos);
 	DDX_Control(pDX, IDC_SCROLLBAR6, DFTScalePos);
 	DDX_Control(pDX, IDC_COMBO1, graphColorChange);
-	DDX_Control(pDX, IDC_STATIC_COORD, cursorPosCoord);
+	DDX_Control(pDX, IDC_STATIC_COORD, cursorPosCoordSignal);
 	DDX_Control(pDX, IDC_CHECK_XSCALE, buttonScaleX);
 	DDX_Control(pDX, IDC_CHECK_YSCALE, buttonScaleY);
 	DDX_Check(pDX, IDC_CHECK_XSCALE, isScaleX);
 	DDX_Check(pDX, IDC_CHECK_YSCALE, isScaleY);
 	DDX_Control(pDX, IDC_COMBO2, backColorChange);
+	DDX_Control(pDX, IDC_STATIC_COORD2, cursorPosCoordDFT);
 }
 
-BEGIN_MESSAGE_MAP(CMyLastCourseworkDlg, CDialogEx)
+BEGIN_MESSAGE_MAP(CMyLastCourseworkDlg, CDialogEx)											//Обработчики событий
 	ON_WM_SYSCOMMAND()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
 	ON_BN_CLICKED(IDC_BUTTON1, &CMyLastCourseworkDlg::OnBnClickedPlaySoundtrack)
-	ON_STN_CLICKED(IDC_STATIC_PAINT, &CMyLastCourseworkDlg::OnStnClickedStaticPaint)
-	ON_STN_CLICKED(IDC_STATIC_PAINT2, &CMyLastCourseworkDlg::OnStnClickedStaticPaint2)
-	ON_NOTIFY(NM_THEMECHANGED, IDC_SCROLLBAR2, &CMyLastCourseworkDlg::OnNMThemeChangedScrollbar2)
 	ON_BN_CLICKED(IDOK, &CMyLastCourseworkDlg::OnBnClickedOk)
 	ON_WM_HSCROLL()
 	ON_BN_CLICKED(IDC_CHECK1, &CMyLastCourseworkDlg::OnBnClickedCheckLog)
@@ -122,6 +118,7 @@ BEGIN_MESSAGE_MAP(CMyLastCourseworkDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_CHECK_YSCALE, &CMyLastCourseworkDlg::OnBnClickedCheckYscale)
 	ON_BN_CLICKED(IDC_CHECK_XSCALE, &CMyLastCourseworkDlg::OnBnClickedCheckXscale)
 	ON_CBN_SELCHANGE(IDC_COMBO2, &CMyLastCourseworkDlg::OnCbnSelchangeComboBackColor)
+	ON_WM_TIMER()
 END_MESSAGE_MAP()
 
 
@@ -129,12 +126,12 @@ END_MESSAGE_MAP()
 
 BOOL CMyLastCourseworkDlg::OnInitDialog()
 {
-	RegisterHotKey(GetSafeHwnd(), 1, MOD_CONTROL | MOD_NOREPEAT, 0x52);
+	RegisterHotKey(GetSafeHwnd(), 1, MOD_CONTROL | MOD_NOREPEAT, 0x52);					//Добавление пользовательских горячих клавиш
 	RegisterHotKey(GetSafeHwnd(), 2, MOD_CONTROL | MOD_NOREPEAT, 0x53);
 
 
-	mySignalGraph.SubclassDlgItem(IDC_STATIC_PAINT, this);
-	DFTGraph.SubclassDlgItem(IDC_STATIC_PAINT2, this);
+	userSignalGraph.SubclassDlgItem(IDC_STATIC_PAINT, this);
+	userDFTGraph.SubclassDlgItem(IDC_STATIC_PAINT2, this);
 	CDialogEx::OnInitDialog();
 
 	// Добавление пункта "О программе..." в системное меню.
@@ -143,7 +140,7 @@ BOOL CMyLastCourseworkDlg::OnInitDialog()
 	ASSERT((IDM_ABOUTBOX & 0xFFF0) == IDM_ABOUTBOX);
 	ASSERT(IDM_ABOUTBOX < 0xF000);
 
-	CMenu* pSysMenu = GetSystemMenu(FALSE);
+	CMenu* pSysMenu = GetSystemMenu(FALSE);							//Добавление строчек в системное меню
 	if (pSysMenu != nullptr)
 	{
 		BOOL bNameValid;
@@ -156,7 +153,7 @@ BOOL CMyLastCourseworkDlg::OnInitDialog()
 			pSysMenu->AppendMenu(MF_STRING, IDM_ABOUTBOX, strAboutMenu);
 		}
 		pSysMenu->AppendMenu(MF_STRING, IDM_SAVEGRAPH, _T("Сохранить график					Ctrl+S"));
-		pSysMenu->AppendMenu(MF_STRING, IDM_RESET_PAR, _T("Сброс параметров				Ctrl+R"));
+		pSysMenu->AppendMenu(MF_STRING, 0x52, _T("Сброс параметров				Ctrl+R"));
 	}
 
 	// Задает значок для этого диалогового окна.  Среда делает это автоматически,
@@ -166,14 +163,14 @@ BOOL CMyLastCourseworkDlg::OnInitDialog()
 
 	// TODO: добавьте дополнительную инициализацию
 	
-	mySignalGraph.GetClientRect(SignalRc);
-	SignalRc.DeflateRect(100, 100);
-	mySignal.ToRectCenter(SignalRc);
+	userSignalGraph.GetClientRect(SignalRc);
+	SignalRc.DeflateRect(900, 200);
+	//userSignal.ToRectCenter(SignalRc);
 	
 
-	DFTGraph.GetClientRect(DFTRc);
-	DFTRc.DeflateRect(100, 100);
-	myDFTSignal.ToRectCenter(DFTRc);
+	userDFTGraph.GetClientRect(DFTRc);
+	DFTRc.DeflateRect(900, 200);
+	//userDFTSignal.ToRectCenter(DFTRc);
 
 	SetScrollsBarRange();
 
@@ -191,7 +188,7 @@ void CMyLastCourseworkDlg::OnSysCommand(UINT nID, LPARAM lParam)
 		CAboutDlg dlgAbout;
 		dlgAbout.DoModal();
 	}
-	if ((nID & 0xFFF0) == IDM_SAVEGRAPH)
+	if ((nID & 0xFFF0) == IDM_SAVEGRAPH)	//Сохранение двух графиков
 	{
 		DoSaveSignal();
 		DoSaveDFTGraph();
@@ -199,7 +196,7 @@ void CMyLastCourseworkDlg::OnSysCommand(UINT nID, LPARAM lParam)
 
 	}
 	
-	else if ((nID & 0xFFF0) == IDM_RESET_PAR)
+	else if ((nID & 0xFFF0) == 0x52)	//СБрос параметров
 	{
 		ResetParametrs();
 		PlaySound(L"Sounds/Sonic-Ring-Sound-Effect.wav", NULL, SND_FILENAME | SND_ASYNC);
@@ -210,10 +207,6 @@ void CMyLastCourseworkDlg::OnSysCommand(UINT nID, LPARAM lParam)
 		CDialogEx::OnSysCommand(nID, lParam);
 	}
 }
-
-// При добавлении кнопки свертывания в диалоговое окно нужно воспользоваться приведенным ниже кодом,
-//  чтобы нарисовать значок.  Для приложений MFC, использующих модель документов или представлений,
-//  это автоматически выполняется рабочей областью.
 
 void CMyLastCourseworkDlg::OnPaint()
 {
@@ -250,15 +243,15 @@ HCURSOR CMyLastCourseworkDlg::OnQueryDragIcon()
 
 std::vector <CPoint> CMyLastCourseworkDlg::CalculateSignal(std::vector <CPoint> vc)
 {
-	myDFTSignal.data.clear();
+	userDFTSignal.data.clear();																//Очистка вектора с хранимыми значениями сигнала
 	CPoint mPt;
-	for (double x = 1; x < 700.0; x++) 
+	for (double x = 0; x < intervalValue; x++) 
 	{
 		
-		mPt.y = round(mySignal.f(x)+ SignalRc.CenterPoint().y);
+		mPt.y = round(userSignal.f(x)+ SignalRc.CenterPoint().y);								//Округление и сдвиг точки к центру
 		mPt.x = round(x);
-		double noScaleY = round(mySignal.f_no_scale(x) + SignalRc.CenterPoint().y);
-		myDFTSignal.data.push_back(noScaleY);
+		double noScaleY = round(userSignal.f_no_checkBox(x));		//Подсчёт сигнала без преобразований для ДПФ
+		userDFTSignal.data.push_back(noScaleY);
 		vc.push_back(mPt);
 	}
 	return vc;
@@ -268,9 +261,9 @@ std::vector <CPoint> CMyLastCourseworkDlg::CalculateSignal(std::vector <CPoint> 
 std::vector<CPoint> CMyLastCourseworkDlg::CalculateDFTSignal(std::vector<CPoint> vc)
 {
 	CPoint mPtDFT;
-	for (double x = 1; x < 700; x++)
+	for (double x = 0; x < intervalValue; x++)
 	{
-		mPtDFT.y = round(myDFTSignal.f_DFT(x) + DFTRc.CenterPoint().y);
+		mPtDFT.y = round(userDFTSignal.f_DFT(x) + DFTRc.CenterPoint().y);
 		mPtDFT.x = round(x);
 		vc.push_back(mPtDFT);
 	}
@@ -281,29 +274,8 @@ std::vector<CPoint> CMyLastCourseworkDlg::CalculateDFTSignal(std::vector<CPoint>
 void CMyLastCourseworkDlg::OnBnClickedPlaySoundtrack()
 {
 
-	PlaySound(L"Sounds/chuck-berry-you-never-can-tell-pulp-fiction.wav", NULL, SND_FILENAME | SND_ASYNC);
+	PlaySound(L"Sounds/chuck-berry-you-never-can-tell-pulp-fiction.wav", NULL, SND_FILENAME | SND_ASYNC);	//Фоновая музыка
 
-}
-
-
-void CMyLastCourseworkDlg::OnStnClickedStaticPaint()
-{
-	// TODO: добавьте свой код обработчика уведомлений
-}
-
-
-void CMyLastCourseworkDlg::OnStnClickedStaticPaint2()
-{
-	// TODO: добавьте свой код обработчика уведомлений
-}
-
-
-void CMyLastCourseworkDlg::OnNMThemeChangedScrollbar2(NMHDR* pNMHDR, LRESULT* pResult)
-{
-	// Для этого средства требуется Windows XP или более поздняя версия.
-	// Символ _WIN32_WINNT должен быть >= 0x0501.
-	// TODO: добавьте свой код обработчика уведомлений
-	*pResult = 0;
 }
 
 
@@ -317,7 +289,7 @@ void CMyLastCourseworkDlg::OnBnClickedOk()
 void CMyLastCourseworkDlg::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 {
 
-	if (pScrollBar->GetDlgCtrlID() == mPos.GetDlgCtrlID())
+	if (pScrollBar->GetDlgCtrlID() == mPos.GetDlgCtrlID())							//Изменение параметра m скроллбаром
 	{
 		UpdateData(FALSE);
 		switch (nSBCode)
@@ -327,19 +299,22 @@ void CMyLastCourseworkDlg::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrol
 		}
 		mPos.EnableScrollBar(ESB_ENABLE_BOTH);
 		mPos.SetScrollPos(mValue);
-		mValueText.Format(_T("%.2f"), (mValue/100));
-		CWnd* my_m = GetDlgItem(IDC_STATIC_M);
-		my_m->SetWindowText(mValueText);
-		mySignal.SetParametrs(mValue/100, FmValue/100, fValue/100);
-		mySignal.SetSignalScale(mSignalScale/100);
-		myDFTSignal.SetParametrs(mValue / 100, FmValue / 100, fValue / 100);
-		myDFTSignal.SetDFTScale(mDFTScale/100);
+
+		mValueText.Format(_T("%.2f"), (mValue/100));								//Значение параметра в CStatic
+		CWnd* my_m = GetDlgItem(IDC_STATIC_M);										//
+		my_m->SetWindowText(mValueText);											//
+
+		userSignal.SetParametrs(mValue/100, FmValue/100, fValue/100);
+		userSignal.SetSignalScale(mSignalScale/100);
+
+		userDFTSignal.SetParametrs(mValue / 100, FmValue / 100, fValue / 100);
+		userDFTSignal.SetDFTScale(mDFTScale/100);
 
 
 	}
 	
 	
-	if (pScrollBar->GetDlgCtrlID() == FmPos.GetDlgCtrlID())
+	if (pScrollBar->GetDlgCtrlID() == FmPos.GetDlgCtrlID())						//Изменение параметра Fm скроллбаром
 	{
 		UpdateData(FALSE);
 		switch (nSBCode)
@@ -350,19 +325,21 @@ void CMyLastCourseworkDlg::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrol
 		FmPos.EnableScrollBar(ESB_ENABLE_BOTH);
 		FmPos.SetScrollPos(FmValue);
 
-		FmValueText.Format(_T("%.2f"), (FmValue / 100));
+		FmValueText.Format(_T("%.2f"), (FmValue / 100));						//Значение параметра в CStatic
 		CWnd* my_Fm = GetDlgItem(IDC_STATIC_Fm);
 		my_Fm->SetWindowText(FmValueText);
-		mySignal.SetParametrs(mValue / 100, FmValue / 100, fValue / 100);
-		mySignal.SetSignalScale(mSignalScale / 100);
-		myDFTSignal.SetParametrs(mValue / 100, FmValue / 100, fValue / 100);
-		myDFTSignal.SetDFTScale(mDFTScale / 100);
+
+		userSignal.SetParametrs(mValue / 100, FmValue / 100, fValue / 100);
+		userSignal.SetSignalScale(mSignalScale / 100);
+
+		userDFTSignal.SetParametrs(mValue / 100, FmValue / 100, fValue / 100);
+		userDFTSignal.SetDFTScale(mDFTScale / 100);
 
 
 
 	}
 
-	if (pScrollBar->GetDlgCtrlID() == fPos.GetDlgCtrlID())
+	if (pScrollBar->GetDlgCtrlID() == fPos.GetDlgCtrlID())							//Изменение параметра f скроллбаром
 	{
 		UpdateData(FALSE);
 		switch (nSBCode)
@@ -373,52 +350,54 @@ void CMyLastCourseworkDlg::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrol
 		fPos.EnableScrollBar(ESB_ENABLE_BOTH);
 		fPos.SetScrollPos(fValue);
 
-		fValueText.Format(_T("%.2f"), (fValue / 100));
-		CWnd* my_f = GetDlgItem(IDC_STATIC_f);
+		fValueText.Format(_T("%.2f"), (fValue / 100));								
+		CWnd* my_f = GetDlgItem(IDC_STATIC_f);										//Значение параметра в CStatic
 		my_f->SetWindowText(fValueText);
-		mySignal.SetParametrs(mValue / 100, FmValue / 100, fValue / 100);
-		mySignal.SetSignalScale(mSignalScale / 100);
-		myDFTSignal.SetParametrs(mValue / 100, FmValue / 100, fValue / 100);
-		myDFTSignal.SetDFTScale(mDFTScale / 100);
+
+		userSignal.SetParametrs(mValue / 100, FmValue / 100, fValue / 100);
+		userSignal.SetSignalScale(mSignalScale / 100);
+
+		userDFTSignal.SetParametrs(mValue / 100, FmValue / 100, fValue / 100);
+		userDFTSignal.SetDFTScale(mDFTScale / 100);
 
 
 	}
 
 
-	/*if (pScrollBar->GetDlgCtrlID() == stepPos.GetDlgCtrlID())
+	if (pScrollBar->GetDlgCtrlID() == intervalPos.GetDlgCtrlID())					//Изменение интервала скроллбаром
 	{
 		UpdateData(FALSE);
 		switch (nSBCode)
 		{
 		case SB_THUMBTRACK:
-			stepValue = nPos;
+			intervalValue = nPos;
 		}
-		stepPos.EnableScrollBar(ESB_ENABLE_BOTH);
-		stepPos.SetScrollPos(stepValue);
+		intervalPos.EnableScrollBar(ESB_ENABLE_BOTH);
+		intervalPos.SetScrollPos(intervalValue);
 
-		stepValueText.Format(_T("%d"), (stepValue));
+		intervalValueText.Format(_T("%d"), (intervalValue));						//Значение параметра в CStatic
 		CWnd* my_step = GetDlgItem(IDC_STATIC_Step);
-		my_step->SetWindowText(stepValueText);
-		mySignal.SetParametrs(mValue / 100, FmValue / 100, fValue / 100);
-		mySignal.SetSignalScale(mSignalScale / 100);
-		myDFTSignal.SetParametrs(mValue / 100, FmValue / 100, fValue / 100);
-		myDFTSignal.SetDFTScale(mDFTScale / 100);
+		my_step->SetWindowText(intervalValueText);
 
-	}*/
+		userSignal.SetParametrs(mValue / 100, FmValue / 100, fValue / 100);
+		userSignal.SetSignalScale(mSignalScale / 100);
 
+		userDFTSignal.SetParametrs(mValue / 100, FmValue / 100, fValue / 100);
+		userDFTSignal.SetDFTScale(mDFTScale / 100);
+
+	}
+
+	//Перерисовка графика в реальном времени в зависомости от параметра скроллбара
 	vecSignal.clear();
 	vecSignal = CalculateSignal(vecSignal);
-	mySignalGraph.ToGraph(vecSignal);
-	mySignalGraph.RedrawWindow();
+	userSignalGraph.ToGraph(vecSignal);
+	userSignalGraph.RedrawWindow();
 
 	vecDFTSignal.clear();
 	vecDFTSignal = CalculateDFTSignal(vecDFTSignal);
-	DFTGraph.ToGraph(vecDFTSignal);
-	DFTGraph.RedrawWindow();
+	userDFTGraph.ToGraph(vecDFTSignal);
+	userDFTGraph.RedrawWindow();
 
-
-	
-	
 	
 	CDialogEx::OnHScroll(nSBCode, nPos, pScrollBar);
 
@@ -429,7 +408,7 @@ void CMyLastCourseworkDlg::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrol
 void CMyLastCourseworkDlg::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 {
 
-	if (pScrollBar->GetDlgCtrlID() == signalScalePos.GetDlgCtrlID())
+	if (pScrollBar->GetDlgCtrlID() == signalScalePos.GetDlgCtrlID())		//Масштабирование сигнала 
 	{
 		UpdateData(FALSE);
 		switch (nSBCode)
@@ -440,15 +419,15 @@ void CMyLastCourseworkDlg::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrol
 		signalScalePos.EnableScrollBar(ESB_ENABLE_BOTH);
 		signalScalePos.SetScrollPos(mSignalScale);
 
-		mySignal.SetParametrs(mValue / 100, FmValue / 100, fValue / 100);
-		mySignal.SetSignalScale(mSignalScale / 100);
-		myDFTSignal.SetParametrs(mValue / 100, FmValue / 100, fValue / 100);
-		myDFTSignal.SetDFTScale(mDFTScale / 100);
+		userSignal.SetParametrs(mValue / 100, FmValue / 100, fValue / 100);
+		userSignal.SetSignalScale(mSignalScale / 100);
+		userDFTSignal.SetParametrs(mValue / 100, FmValue / 100, fValue / 100);
+		userDFTSignal.SetDFTScale(mDFTScale / 100);
 
 	}
 
 
-	if (pScrollBar->GetDlgCtrlID() == DFTScalePos.GetDlgCtrlID())
+	if (pScrollBar->GetDlgCtrlID() == DFTScalePos.GetDlgCtrlID())			//Масштабирование ДПФ
 	{
 		UpdateData(FALSE);
 		switch (nSBCode)
@@ -458,23 +437,25 @@ void CMyLastCourseworkDlg::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrol
 		}
 		DFTScalePos.EnableScrollBar(ESB_ENABLE_BOTH);
 		DFTScalePos.SetScrollPos(mDFTScale);
-		mySignal.SetParametrs(mValue / 100, FmValue / 100, fValue / 100);
-		mySignal.SetSignalScale(mSignalScale / 100);
-		myDFTSignal.SetParametrs(mValue / 100, FmValue / 100, fValue / 100);
-		myDFTSignal.SetDFTScale(mDFTScale / 100);
+		userSignal.SetParametrs(mValue / 100, FmValue / 100, fValue / 100);
+		userSignal.SetSignalScale(mSignalScale / 100);
+		userDFTSignal.SetParametrs(mValue / 100, FmValue / 100, fValue / 100);
+		userDFTSignal.SetDFTScale(mDFTScale / 100);
 
 
 	}
 
+	//Перерисовка графика в зависимости масштабирования
+
 	vecDFTSignal.clear();
 	vecDFTSignal = CalculateDFTSignal(vecDFTSignal);
-	DFTGraph.ToGraph(vecDFTSignal);
-	DFTGraph.RedrawWindow();
+	userDFTGraph.ToGraph(vecDFTSignal);
+	userDFTGraph.RedrawWindow();
 
 	vecSignal.clear();
 	vecSignal = CalculateSignal(vecSignal);
-	mySignalGraph.ToGraph(vecSignal);
-	mySignalGraph.RedrawWindow();
+	userSignalGraph.ToGraph(vecSignal);
+	userSignalGraph.RedrawWindow();
 
 
 	CDialogEx::OnVScroll(nSBCode, nPos, pScrollBar);
@@ -482,57 +463,56 @@ void CMyLastCourseworkDlg::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrol
 
 
 
-void CMyLastCourseworkDlg::OnBnClickedCheckLog()
+void CMyLastCourseworkDlg::OnBnClickedCheckLog()	//Проверка логаримфического масштаба
 {
 	UpdateData(TRUE);
 	if (userIsLog)
 	{ 
-		mySignal.checkLog = true;
-		myDFTSignal.checkLog = true;
+		userSignal.checkLog = true;
+		userDFTSignal.checkLog = true;
 	}
 		
 	else
 	{
-		mySignal.checkLog = false;
-		myDFTSignal.checkLog = false;
+		userSignal.checkLog = false;
+		userDFTSignal.checkLog = false;
 	}
 }
 
 
-
-void CMyLastCourseworkDlg::OnBnClickedCheckYscale()
+void CMyLastCourseworkDlg::OnBnClickedCheckYscale()				//Проверка масштабирования по Y
 {
 	UpdateData(TRUE);
 	if (isScaleY)
 	{
-		mySignal.checkYScale = true;
-		myDFTSignal.checkYScale = true;
+		userSignal.checkYScale = true;
+		userDFTSignal.checkYScale = true;
 	}
 	else
 	{
-		mySignal.checkYScale = false;
-		myDFTSignal.checkYScale = false;
+		userSignal.checkYScale = false;
+		userDFTSignal.checkYScale = false;
 	}
 }
 
 
-void CMyLastCourseworkDlg::OnBnClickedCheckXscale()
+void CMyLastCourseworkDlg::OnBnClickedCheckXscale()				//Проверка масштабирования по X
 {
 	UpdateData(TRUE);
 	if (isScaleX)
 	{
-		mySignal.checkXScale = true;
-		myDFTSignal.checkXScale = true;
+		userSignal.checkXScale = true;
+		userDFTSignal.checkXScale = true;
 	}
 	else
 	{
-		mySignal.checkXScale = false;
-		myDFTSignal.checkXScale = false;
+		userSignal.checkXScale = false;
+		userDFTSignal.checkXScale = false;
 	}
 }
 
 
-void CMyLastCourseworkDlg::OnHotKey(UINT nHotKeyId, UINT nKey1, UINT nKey2)
+void CMyLastCourseworkDlg::OnHotKey(UINT nHotKeyId, UINT nKey1, UINT nKey2)	//Обработчик нажатий горячих клавиш
 {
 	if (nHotKeyId == 1)
 	{
@@ -550,47 +530,50 @@ void CMyLastCourseworkDlg::OnHotKey(UINT nHotKeyId, UINT nKey1, UINT nKey2)
 	CDialogEx::OnHotKey(nHotKeyId, nKey1, nKey2);
 }
 
-//Доработать 
+
 void CMyLastCourseworkDlg::OnMouseMove(UINT nFlags, CPoint point)		
 {
 
 	CRect rc1;
-	CRect rc2;
-	mySignalGraph.GetWindowRect(&rc1);
-	DFTGraph.GetWindowRect(&rc2);
+	userSignalGraph.GetWindowRect(&rc1);
 	CPoint pt1 = point;
-	CPoint pt2 = point;
 	ClientToScreen(&pt1);
-	
-	if (rc1.PtInRect(pt1));
+	if (rc1.PtInRect(pt1))								//Отображение отмасштабированных коориднат сигнала по курсору 
 	{
-		mySignalGraph.ScreenToClient(&pt1);
+		userSignalGraph.ScreenToClient(&pt1);
 		double x, y;
-		x = pt1.x / mSignalScale;
-		y = (-1 * pt1.y) / mSignalScale;
+		x = pt1.x ;
+		y = -1 * pt1.y ;
 		CString strPos;
-		strPos.Format(_T("X=%.2f Y=%.2f"), x, y);
-		cursorPosCoord.SetWindowTextW(strPos);
-	}
-	ClientToScreen(&pt2);
-	if (rc2.PtInRect(pt2))
-	{
-		DFTGraph.ScreenToClient(&pt2);
-		double x, y;
-		x = pt2.x / mDFTScale;
-		y = (-1 * pt2.y) / mDFTScale;
-		CString strPos;
-		strPos.Format(_T("X=%.2f Y=%.2f"), x, y);
-		cursorPosCoord.SetWindowTextW(strPos);
+		strPos.Format(_T("T=%.2f Y=%.2f"), x, y);
+		cursorPosCoordSignal.SetWindowTextW(strPos);
 	}
 	else
-		cursorPosCoord.SetWindowTextW(_T(""));
+		cursorPosCoordSignal.SetWindowTextW(_T(""));
+
+	CRect rc2;
+	userDFTGraph.GetWindowRect(&rc2);
+	CPoint pt2 = point;
+	ClientToScreen(&pt2);
+	if (rc2.PtInRect(pt2))								//Отображение отмасштабированных коориднат ДПФ по курсору 
+	{
+		userDFTGraph.ScreenToClient(&pt2);
+		double x, y;
+		x = pt2.x;
+		y = -1 * pt2.y;
+		CString strPos;
+		strPos.Format(_T("T=%.2f Y=%.2f"), x, y);
+		cursorPosCoordDFT.SetWindowTextW(strPos);
+	}
+	else
+		cursorPosCoordDFT.SetWindowTextW(_T(""));
+
+		
 	CDialogEx::OnMouseMove(nFlags, point);
 }   
 
 
-
-void CMyLastCourseworkDlg::OnCbnSelchangeComboColor()
+void CMyLastCourseworkDlg::OnCbnSelchangeComboColor()		//Выбор цвета графика в ComboBox
 {
 	int cmb = graphColorChange.GetCurSel();
 
@@ -602,66 +585,67 @@ void CMyLastCourseworkDlg::OnCbnSelchangeComboColor()
 	switch (cmb)
 	{
 	case 0:
-		mySignalGraph.graphUserColor.red = 5;
-		mySignalGraph.graphUserColor.green = 255;
-		mySignalGraph.graphUserColor.blue = 42;
+		userSignalGraph.graphUserColor.red = 5;
+		userSignalGraph.graphUserColor.green = 255;
+		userSignalGraph.graphUserColor.blue = 42;
 
-		DFTGraph.graphUserColor.red = 5;
-		DFTGraph.graphUserColor.green = 255;
-		DFTGraph.graphUserColor.blue = 42;
+		userDFTGraph.graphUserColor.red = 5;
+		userDFTGraph.graphUserColor.green = 255;
+		userDFTGraph.graphUserColor.blue = 42;
 		break;
 	case 1:
-		mySignalGraph.graphUserColor.red = 255;
-		mySignalGraph.graphUserColor.green = 35;
-		mySignalGraph.graphUserColor.blue = 25;
+		userSignalGraph.graphUserColor.red = 255;
+		userSignalGraph.graphUserColor.green = 35;
+		userSignalGraph.graphUserColor.blue = 25;
 
-		DFTGraph.graphUserColor.red = 255;
-		DFTGraph.graphUserColor.green = 35;
-		DFTGraph.graphUserColor.blue = 25;
+		userDFTGraph.graphUserColor.red = 255;
+		userDFTGraph.graphUserColor.green = 35;
+		userDFTGraph.graphUserColor.blue = 25;
 		break;
 	case 2:
-		mySignalGraph.graphUserColor.red = 255;
-		mySignalGraph.graphUserColor.green = 255;
-		mySignalGraph.graphUserColor.blue = 255;
+		userSignalGraph.graphUserColor.red = 255;
+		userSignalGraph.graphUserColor.green = 255;
+		userSignalGraph.graphUserColor.blue = 255;
 
-		DFTGraph.graphUserColor.red = 255;
-		DFTGraph.graphUserColor.green = 255;
-		DFTGraph.graphUserColor.blue = 255;
+		userDFTGraph.graphUserColor.red = 255;
+		userDFTGraph.graphUserColor.green = 255;
+		userDFTGraph.graphUserColor.blue = 255;
 		break;
 	case 3:
-		mySignalGraph.graphUserColor.red = 255;
-		mySignalGraph.graphUserColor.green = 36;
-		mySignalGraph.graphUserColor.blue = 254;
+		userSignalGraph.graphUserColor.red = 255;
+		userSignalGraph.graphUserColor.green = 36;
+		userSignalGraph.graphUserColor.blue = 254;
 
-		DFTGraph.graphUserColor.red = 255;
-		DFTGraph.graphUserColor.green = 36;
-		DFTGraph.graphUserColor.blue = 254;
+		userDFTGraph.graphUserColor.red = 255;
+		userDFTGraph.graphUserColor.green = 36;
+		userDFTGraph.graphUserColor.blue = 254;
 		break;
 	case 4:
-		mySignalGraph.graphUserColor.red = 255;
-		mySignalGraph.graphUserColor.green = 245;
-		mySignalGraph.graphUserColor.blue = 31;
+		userSignalGraph.graphUserColor.red = 255;
+		userSignalGraph.graphUserColor.green = 245;
+		userSignalGraph.graphUserColor.blue = 31;
 
-		DFTGraph.graphUserColor.red = 255;
-		DFTGraph.graphUserColor.green = 245;
-		DFTGraph.graphUserColor.blue = 31;
+		userDFTGraph.graphUserColor.red = 255;
+		userDFTGraph.graphUserColor.green = 245;
+		userDFTGraph.graphUserColor.blue = 31;
 		break;
 	case 5:
-		mySignalGraph.graphUserColor.red = 0;
-		mySignalGraph.graphUserColor.green = 0;
-		mySignalGraph.graphUserColor.blue = 0;
+		userSignalGraph.graphUserColor.red = 0;
+		userSignalGraph.graphUserColor.green = 0;
+		userSignalGraph.graphUserColor.blue = 0;
 
-		DFTGraph.graphUserColor.red = 0;
-		DFTGraph.graphUserColor.green = 0;
-		DFTGraph.graphUserColor.blue = 0;
+		userDFTGraph.graphUserColor.red = 0;
+		userDFTGraph.graphUserColor.green = 0;
+		userDFTGraph.graphUserColor.blue = 0;
 		break;
 	}
 	
-	mySignalGraph.RedrawWindow();
-	DFTGraph.RedrawWindow();
+	userSignalGraph.RedrawWindow();
+	userDFTGraph.RedrawWindow();
 }
 
-void CMyLastCourseworkDlg::OnCbnSelchangeComboBackColor()
+
+void CMyLastCourseworkDlg::OnCbnSelchangeComboBackColor()			//Выбор цвета фона в ComboBox
 {
 	int cmb = backColorChange.GetCurSel();
 	if (LB_ERR == cmb)
@@ -672,71 +656,69 @@ void CMyLastCourseworkDlg::OnCbnSelchangeComboBackColor()
 	switch (cmb)
 	{
 	case 0:
-		mySignalGraph.backUserColor.red = 147;
-		mySignalGraph.backUserColor.green = 112;
-		mySignalGraph.backUserColor.blue = 219;
+		userSignalGraph.backUserColor.red = 147;
+		userSignalGraph.backUserColor.green = 112;
+		userSignalGraph.backUserColor.blue = 219;
 
-		DFTGraph.backUserColor.red = 147;
-		DFTGraph.backUserColor.green = 112;
-		DFTGraph.backUserColor.blue = 219;
+		userDFTGraph.backUserColor.red = 147;
+		userDFTGraph.backUserColor.green = 112;
+		userDFTGraph.backUserColor.blue = 219;
 		break;
 	case 1:
-		mySignalGraph.backUserColor.red = 30;
-		mySignalGraph.backUserColor.green = 144;
-		mySignalGraph.backUserColor.blue = 255;
+		userSignalGraph.backUserColor.red = 30;
+		userSignalGraph.backUserColor.green = 144;
+		userSignalGraph.backUserColor.blue = 255;
 
-		DFTGraph.backUserColor.red = 30;
-		DFTGraph.backUserColor.green = 144;
-		DFTGraph.backUserColor.blue = 255;
+		userDFTGraph.backUserColor.red = 30;
+		userDFTGraph.backUserColor.green = 144;
+		userDFTGraph.backUserColor.blue = 255;
 		break;
 	case 2:
-		mySignalGraph.backUserColor.red = 255;
-		mySignalGraph.backUserColor.green = 255;
-		mySignalGraph.backUserColor.blue = 255;
+		userSignalGraph.backUserColor.red = 255;
+		userSignalGraph.backUserColor.green = 255;
+		userSignalGraph.backUserColor.blue = 255;
 
-		DFTGraph.backUserColor.red = 255;
-		DFTGraph.backUserColor.green = 255;
-		DFTGraph.backUserColor.blue = 255;
+		userDFTGraph.backUserColor.red = 255;
+		userDFTGraph.backUserColor.green = 255;
+		userDFTGraph.backUserColor.blue = 255;
 		break;
 	case 3:
-		mySignalGraph.backUserColor.red = 240;
-		mySignalGraph.backUserColor.green = 128;
-		mySignalGraph.backUserColor.blue = 128;
+		userSignalGraph.backUserColor.red = 240;
+		userSignalGraph.backUserColor.green = 128;
+		userSignalGraph.backUserColor.blue = 128;
 
-		DFTGraph.backUserColor.red = 240;
-		DFTGraph.backUserColor.green = 128;
-		DFTGraph.backUserColor.blue = 128;
+		userDFTGraph.backUserColor.red = 240;
+		userDFTGraph.backUserColor.green = 128;
+		userDFTGraph.backUserColor.blue = 128;
 		break;
 	case 4:
-		mySignalGraph.backUserColor.red = 50;
-		mySignalGraph.backUserColor.green = 205;
-		mySignalGraph.backUserColor.blue = 50;
+		userSignalGraph.backUserColor.red = 50;
+		userSignalGraph.backUserColor.green = 205;
+		userSignalGraph.backUserColor.blue = 50;
 
-		DFTGraph.backUserColor.red = 50;
-		DFTGraph.backUserColor.green = 205;
-		DFTGraph.backUserColor.blue = 50;
+		userDFTGraph.backUserColor.red = 50;
+		userDFTGraph.backUserColor.green = 205;
+		userDFTGraph.backUserColor.blue = 50;
 		break;
 	case 5:
-		mySignalGraph.backUserColor.red = 128;
-		mySignalGraph.backUserColor.green = 128;
-		mySignalGraph.backUserColor.blue = 128;
+		userSignalGraph.backUserColor.red = 128;
+		userSignalGraph.backUserColor.green = 128;
+		userSignalGraph.backUserColor.blue = 128;
 
-		DFTGraph.backUserColor.red = 128;
-		DFTGraph.backUserColor.green = 128;
-		DFTGraph.backUserColor.blue = 128;
+		userDFTGraph.backUserColor.red = 128;
+		userDFTGraph.backUserColor.green = 128;
+		userDFTGraph.backUserColor.blue = 128;
 		break;
 	}
 
-	mySignalGraph.myBgrOk = false;
-	DFTGraph.myBgrOk = false;
-	mySignalGraph.RedrawWindow();
-	DFTGraph.RedrawWindow();
+	userSignalGraph.myBgrOk = false;
+	userDFTGraph.myBgrOk = false;
+	userSignalGraph.RedrawWindow();
+	userDFTGraph.RedrawWindow();
 }
 
 
-
-
-void CMyLastCourseworkDlg::DoSaveSignal()
+void CMyLastCourseworkDlg::DoSaveSignal()		//Сохранение сигнальной функции в формат PNG
 {
 	CWnd* pWn = GetDlgItem(IDC_STATIC_PAINT);
 	if (!pWn)
@@ -756,7 +738,7 @@ void CMyLastCourseworkDlg::DoSaveSignal()
 	image.Save(_T("Signal.png"), SignalImageFormatPNG);
 }			
 
-void CMyLastCourseworkDlg::DoSaveDFTGraph()
+void CMyLastCourseworkDlg::DoSaveDFTGraph()			//Сохранение ДПФ в формат PNG
 {
 	CWnd* pWn = GetDlgItem(IDC_STATIC_PAINT2);
 	if (!pWn)
@@ -779,12 +761,12 @@ void CMyLastCourseworkDlg::DoSaveDFTGraph()
 void CMyLastCourseworkDlg::ResetParametrs()
 {
 	vecSignal.clear();
-	mySignalGraph.ToGraph(vecSignal);
-	mySignalGraph.RedrawWindow();
+	userSignalGraph.ToGraph(vecSignal);
+	userSignalGraph.RedrawWindow();
 
 	vecDFTSignal.clear();
-	DFTGraph.ToGraph(vecDFTSignal);
-	DFTGraph.RedrawWindow();
+	userDFTGraph.ToGraph(vecDFTSignal);
+	userDFTGraph.RedrawWindow();
 
 	buttonLog.SetCheck(false);
 	buttonScaleX.SetCheck(false);
@@ -793,7 +775,7 @@ void CMyLastCourseworkDlg::ResetParametrs()
 	mPos.SetScrollPos(0);
 	FmPos.SetScrollPos(0);
 	fPos.SetScrollPos(10);
-	stepPos.SetScrollPos(1);
+	intervalPos.SetScrollPos(1);
 	signalScalePos.SetScrollPos(1);
 	DFTScalePos.SetScrollPos(1);
 
@@ -812,41 +794,33 @@ void CMyLastCourseworkDlg::ResetParametrs()
 	PlaySound(L"Sounds/Sonic-Ring-Sound-Effect.wav", NULL, SND_FILENAME | SND_ASYNC);
 }
 
-void CMyLastCourseworkDlg::SetScrollsBarRange()
+void CMyLastCourseworkDlg::SetScrollsBarRange()			//Задание диапозона и начальных значений скролл баров
 {
 	mPos.SetScrollRange(0, 50);
 	FmPos.SetScrollRange(0, 9);
 	fPos.SetScrollRange(10, 40);
-	stepPos.SetScrollRange(1, 2);
+	intervalPos.SetScrollRange(100, 900);
 	signalScalePos.SetScrollRange(1, 1000);
 	DFTScalePos.SetScrollRange(1, 10000);
 
 	mPos.SetScrollPos(0);
 	FmPos.SetScrollPos(0);
 	fPos.SetScrollPos(10);
-	stepPos.SetScrollPos(1);
+	intervalPos.SetScrollPos(100);
 	signalScalePos.SetScrollPos(1);
 	DFTScalePos.SetScrollPos(1);
-
-	/*mValueText.Format(_T("%.2f"), (mValue / 100));
-	CWnd* my_m = GetDlgItem(IDC_STATIC_M);
-	my_m->SetWindowText(mValueText);
-
-	FmValueText.Format(_T("%.2f"), (FmValue / 100));
-	CWnd* my_Fm = GetDlgItem(IDC_STATIC_Fm);
-	my_Fm->SetWindowText(FmValueText);
-
-	fValueText.Format(_T("%.2f"), (fValue / 100));
-	CWnd* my_f = GetDlgItem(IDC_STATIC_f);
-	my_f->SetWindowText(fValueText);
-
-	stepValueText.Format(_T("%d"), (stepValue));
-	CWnd* my_step = GetDlgItem(IDC_STATIC_Step);
-	my_step->SetWindowText(stepValueText);*/
 
 
 	vecSignal.clear();
 	vecSignal = CalculateSignal(vecSignal);
-	mySignalGraph.ToGraph(vecSignal);
-	mySignalGraph.RedrawWindow();
+	userSignalGraph.ToGraph(vecSignal);
+	userSignalGraph.RedrawWindow();
+
+	vecDFTSignal.clear();
+	vecDFTSignal = CalculateDFTSignal(vecDFTSignal);
+	userDFTGraph.ToGraph(vecDFTSignal);
+	userDFTGraph.RedrawWindow();
 }
+
+
+
